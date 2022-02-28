@@ -110,13 +110,13 @@ ggplot(winnewinter) +
   geom_point(mapping = aes(x = year, y = meantmax)) +
   geom_line(mapping = aes(x = year, y = fitted)) +
   theme_bw() +
-  labs(x = "year", y = "tmax")
+  labs(x = "year", y = "tmax") 
 
 ```
 
 ### Download NASS corn yield data
 
-```{r yield download}
+```{r yield download, results='hide'}
 
 # set our API key with NASS
 nassqs_auth(key = "BC58E27D-5B67-3236-A9E4-8E1CE4BBE26F")
@@ -145,18 +145,55 @@ cornyields <- tibble(cornyields)
 winnecornyields <- cornyields %>%
   filter(county_ansi=="191") 
 
+
 ggplot(winnecornyields, mapping = aes(x= year, y= yield)) +  
   geom_point() +
   theme_bw() +
   labs(x = "year", y = "yield") +
   geom_smooth(method = lm) 
 
+lm_winnecornyields <- lm(yield ~ year, winnecornyields)
+summary(lm_winnecornyields) 
+```
+There is a positive trend displayed from the Winneshiek County corn yields plot that shows an increase in yield as time increases.The p-value of the data (1.767e^-13) is smaller than alpha (0.05), also telling us there is significant evidence that a time trend is present.   
+
+### Question 1b: Fit a quadratic time trend (i.e., year + year^2) and make a plot. Is there evidence for slowing yield growth? 
+```{r}
+winnecornyields$yearsq <- winnecornyields$year^2
+
+lm_cornyieldsquad <- lm(yield ~ year + yearsq, winnecornyields)
+summary(lm_cornyieldsquad) 
+winnecornyields$fitted <- lm_cornyieldsquad$fitted.values
+
+ggplot(winnecornyields) +
+  geom_point(mapping = aes(x = year, y = yield))+
+  geom_line(mapping = aes(x = year, y = fitted)) + 
+  theme_bw() +
+  labs(x = "year", y = "yield") 
+
+```
+There is significant evidence that there is a relationship between yield growth and year due to the p-value being smaller than alpha, however the graph displays a positive slope, thus the evidence is NOT slowing yield growth.  
+
+### Question 2 -- Time Series: Let's analyze the relationship between temperature and yields for the Winneshiek County time series. Use data on yield and summer avg Tmax. Is adding year or Tmax^2 to your model helpful? Make a plot and interpret the results.
+
+```{r} 
+temp_yield <- inner_join(winnecornyields, winnesummer) 
+
+temp_yield$meantmaxsq <- temp_yield$meantmax^2 
+
+lm_temp_yield <- lm(yield ~ meantmax + meantmaxsq, temp_yield)
+summary(lm_temp_yield) 
+temp_yield$fitted <- lm_temp_yield$fitted.values
+
+ggplot(temp_yield) +
+  geom_point(mapping = aes(x = meantmax, y = yield))+
+  geom_line(mapping = aes(x = meantmaxsq, y = fitted)) + 
+  theme_bw() +
+  labs(x = "Tmax^2 (C)", y = "yield")
 ```
 
 
-### Question 1b: Fit a quadratic time trend (i.e., year + year^2) and make a plot. Is there evidence for slowing yield growth? 
 
-### Question 2 -- Time Series: Let's analyze the relationship between temperature and yields for the Winneshiek County time series. Use data on yield and summer avg Tmax. Is adding year or Tmax^2 to your model helpful? Make a plot and interpret the results.
 
 ### Question 3 -- Cross-Section: Analyze the relationship between temperature and yield across all counties in 2018. Is there a relationship? Interpret the results.
 
