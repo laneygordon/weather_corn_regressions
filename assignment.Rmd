@@ -1,7 +1,7 @@
 ---
 title: "Weather and Corn Yield Regressions"
-author: "Nathan Mueller"
-date: "2/25/2022"
+author: "Laney Gordon"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output: html_document
 ---
 
@@ -20,7 +20,7 @@ library(rnassqs)
 
 # daily max temperature
 # dimensions: counties x days x years
-prism <- readMat("data/prismiowa.mat")
+prism <- readMat("Data/prismiowa (5).mat")
 
 # look at county #1
 t_1981_c1 <- prism$tmaxdaily.iowa[1,,1]
@@ -36,6 +36,7 @@ ggplot() +
 
 
 ```
+
 ```{r tidying up}
 
 # assign dimension names to tmax matrix
@@ -80,7 +81,7 @@ summary(lm_summertmax)
 ```{r winter temps}
 
 winnewinter <- tmaxdf %>%
-  filter(countyfp==191 & doy <= 59 | doy >= 335 & !is.na(tmax)) %>%
+  filter(countyfp==191 & (doy <= 59 | doy >= 335) & !is.na(tmax)) %>%
   group_by(year) %>%
   summarize(meantmax = mean(tmax))
 
@@ -118,13 +119,13 @@ ggplot(winnewinter) +
 ```{r yield download}
 
 # set our API key with NASS
-nassqs_auth(key = "...")
+nassqs_auth(key = "BC58E27D-5B67-3236-A9E4-8E1CE4BBE26F")
 
 # parameters to query on 
 params <- list(commodity_desc = "CORN", util_practice_desc = "GRAIN", prodn_practice_desc = "ALL PRODUCTION PRACTICES", year__GE = 1981, state_alpha = "IA")
 
 # download
-cornyieldsall <- nassqs_yields(params)
+cornyieldsall <- nassqs_yields(params) 
 
 cornyieldsall$county_ansi <- as.numeric(cornyieldsall$county_ansi)
 cornyieldsall$yield <- as.numeric(cornyieldsall$Value)
@@ -132,13 +133,26 @@ cornyieldsall$yield <- as.numeric(cornyieldsall$Value)
 # clean and filter this dataset
 cornyields <- select(cornyieldsall, county_ansi, county_name, yield, year) %>%
   filter(!is.na(county_ansi) & !is.na(yield))
-cornyields <- tibble(cornyields)
+cornyields <- tibble(cornyields) 
 
 ```
 
 ## Assignment
 
 ### Question 1a: Extract Winneshiek County corn yields, fit a linear time trend, make a plot. Is there a significant time trend?
+```{r}
+
+winnecornyields <- cornyields %>%
+  filter(county_ansi=="191") 
+
+ggplot(winnecornyields, mapping = aes(x= year, y= yield)) +  
+  geom_point() +
+  theme_bw() +
+  labs(x = "year", y = "yield") +
+  geom_smooth(method = lm) 
+
+```
+
 
 ### Question 1b: Fit a quadratic time trend (i.e., year + year^2) and make a plot. Is there evidence for slowing yield growth? 
 
