@@ -236,10 +236,10 @@ lm_Q3 <- lm(yield ~ meantmax, data = county_summer_yield)
 summary(lm_Q3) 
 
 #plot
-ggplot(county_summer_yield, aes( x= yield, y= meantmax)) +
+ggplot(county_summer_yield, aes( x = meantmax, y= yield)) +
    geom_point() + 
   theme_bw() +
-  labs(x = "Yield", y = "Max Temperature (C)")  
+  labs(x = "Max Temperature (C)", y = "Yield")   
 ```
 Based on the plot, there does not appear to be a relationship between the meantmax and yield, and the p-value of 0.063 is greater than alpha which assures us that we have enough evidence to support this conclusion.  
 
@@ -247,22 +247,42 @@ Based on the plot, there does not appear to be a relationship between the meantm
 ### Question 4 -- Panel: One way to leverage multiple time series is to group all data into what is called a "panel" regression. Convert the county ID code ("countyfp" or "county_ansi") into factor using as.factor, then include this variable in a regression using all counties' yield and summer temperature data. How does the significance of your temperature coefficients (Tmax, Tmax^2) change? Make a plot comparing actual and fitted yields and interpret the results of your model.
 
 ```{r}
-cornyields$county_ansi <- as.factor(as.character(cornyields$county_ansi))  
-str(cornyields) 
+#making the county_ansi into a factor:
+cornyields$county_ansi <- as.factor(as.character(cornyields$county_ansi)) 
 
-summertemp <- tmaxdf %>% 
-  filter(doy >= 152 & doy <= 243) %>% 
-  group_by(countyfp, year) %>% 
-  summarize(meantmax = mean(tmax)) 
 
-countysummer <- inner_join(summertemp, cornyields) 
-cornyields$county_ansi <- as.factor(as.character(cornyields$county_ansi))
-tibble(cornyields) 
+#confirming it is a factor
+str(cornyields$county_ansi) 
 
+
+#summer temperatures
+summertemp <- tmaxdf %>%
+  group_by(countyfp) %>%
+  filter(year == 2018) %>% 
+  filter(doy >= 152 & doy <= 243) %>%
+  summarize(meantmax = mean(tmax)) %>% 
+  rename(county_ansi = "countyfp")
+
+summerq4 <- inner_join( summertemp, cornyields) %>%
+  unique() 
+ 
+# Squares the tmax value
+summerq4$meantmaxsq <- summerq4$meantmax^2
+
+lm_Q4 <- lm(yield ~ county_ansi + meantmax + meantmaxsq + year, summerq4)
+summary(lm_Q4) 
+
+summerq4$fitted <- lm_Q4$fitted.values 
 
 #plot
+ggplot(summerq4, aes( x = fitted, y= yield)) +
+   geom_point() + 
+  theme_bw() +
+  labs(x = "Fitted Yield", y = "Actual Yield")  
 
 ```
+
+
 
 
 ### Question 5 -- Soybeans: Download NASS data on soybean yields and explore either a time series relationship for a given county, the cross-sectional relationship for a given year, or a panel across all counties and years.
