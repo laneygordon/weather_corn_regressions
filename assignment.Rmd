@@ -193,10 +193,10 @@ ggplot(temp_yield) +
   geom_point(mapping = aes(x = meantmax, y = yield))+
   geom_line(mapping = aes(x = meantmax, y = quadfitted)) + 
   theme_bw() +
-  labs(x = "Temp (C)", y = "Yield")
+  labs(x = "Temp (C)", y = "Yield") 
 ```
 
-Adding Tmax^2 to the model is beneficial to the data because it helps us identify the correlation between temperature and yield. The graph displays normal distribution from temperatures 24 degrees C to about 31 degrees C and shows the highest yield occurs from temperatures 26 to 28 degrees C. The p-value of 0.0078 is greater than alpha (0.05), thus we have significant evidence of a correlation.  
+Adding Tmax^2 to the model is beneficial to the data because it helps us identify the correlation between temperature and yield. The graph displays normal distribution from temperatures 24 degrees C to about 31 degrees C and shows the highest yield occurs from temperatures 26 to 28 degrees C. The p-value of 0.0078 is less than alpha (0.05), thus we have evidence that the finding is significant evidence.  
 
 
 ### Question 3 -- Cross-Section: Analyze the relationship between temperature and yield across all counties in 2018. Is there a relationship? Interpret the results.
@@ -241,7 +241,7 @@ ggplot(county_summer_yield, aes( x = meantmax, y= yield)) +
   theme_bw() +
   labs(x = "Max Temperature (C)", y = "Yield")   
 ```
-Based on the plot, there does not appear to be a relationship between the meantmax and yield, and the p-value of 0.063 is greater than alpha which assures us that we have enough evidence to support this conclusion.  
+Based on the plot, there does not appear to be a relationship between the meantmax and yield. Additionally, the p-value of 0.063 is greater than alpha, which assures us that we do not have significant evidence of a relationship between the two.  
 
 
 ### Question 4 -- Panel: One way to leverage multiple time series is to group all data into what is called a "panel" regression. Convert the county ID code ("countyfp" or "county_ansi") into factor using as.factor, then include this variable in a regression using all counties' yield and summer temperature data. How does the significance of your temperature coefficients (Tmax, Tmax^2) change? Make a plot comparing actual and fitted yields and interpret the results of your model.
@@ -257,11 +257,10 @@ str(cornyields$county_ansi)
 
 #summer temperatures
 summertemp <- tmaxdf %>%
-  group_by(countyfp) %>%
-  filter(year == 2018) %>% 
+  group_by(countyfp, year) %>%
   filter(doy >= 152 & doy <= 243) %>%
   summarize(meantmax = mean(tmax)) %>% 
-  rename(county_ansi = "countyfp")
+  rename(county_ansi = "countyfp") 
 
 summerq4 <- inner_join( summertemp, cornyields) %>%
   unique() 
@@ -282,11 +281,43 @@ ggplot(summerq4, aes( x = fitted, y= yield)) +
 
 ```
 
-
+As the actual yield values increase, the fitted yields also increase, and vice versa, creating a diagonal pattern. This diagonal pattern reassures us that the predicted values were fairly close to the actual yield values and there were no obvious outliers.The p-value was extremely low, meaning we have significant evidence of this relationship. 
 
 
 ### Question 5 -- Soybeans: Download NASS data on soybean yields and explore either a time series relationship for a given county, the cross-sectional relationship for a given year, or a panel across all counties and years.
-```{r}
+```{r yield download, results= 'hide' }
+
+# set our API key with NASS
+nassqs_auth(key = "BC58E27D-5B67-3236-A9E4-8E1CE4BBE26F")
+
+# parameters to query on 
+params2 <- list(commodity_desc = "SOYBEANS", statisticcat_desc = "YIELD", prodn_practice_desc = "ALL PRODUCTION PRACTICES", year__GE = 1981, state_alpha = "IA")
+
+# download
+soybeansall <- nassqs_yields(params2)  
+
+soybeansall$county_ansi <- as.numeric(soybeansall$county_ansi) 
+soybeansall$yield <- as.numeric(soybeansall$Value) 
+
+# clean and filter this dataset
+soybeanyields <- select(soybeansall, county_ansi, county_name, yield, year) %>%
+  filter(!is.na(county_ansi) & !is.na(yield))
+soybeanyields <- tibble(soybeanyields) 
+
+#specific Winneshiek County
+winnesoy_yield <- soybeanyields %>%
+  filter(county_ansi=="191") 
+
+
+#time trend
+ggplot(winnesoy_yield, mapping = aes(x= year, y= yield)) +  
+  geom_point() +
+  theme_bw() +
+  labs(x = "year", y = "yield") +
+  geom_smooth(method = lm) 
+
+lm_winnesoy_yield <- lm(yield ~ year, winnesoy_yield)
+summary(lm_winnesoy_yield) 
 
 ```
 
