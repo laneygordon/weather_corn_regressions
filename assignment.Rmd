@@ -349,7 +349,7 @@ ggplot(data=usa, aes(x=long, y=lat, group=group)) +
 state <- map_data("state")
 ggplot(data=state, aes(x=long, y=lat, fill=region, group=group)) + 
   geom_polygon(color = "white") + 
-  guides(fill=FALSE) + 
+  guides(fill= "none") + 
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank(),
         axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) + 
   ggtitle('U.S. Map with States') + 
@@ -362,7 +362,7 @@ iowa_county <- subset(counties, region=="iowa")
 
 ca_map <- ggplot(data=iowa, mapping=aes(x=long, y=lat, group=group)) + 
   coord_fixed(1.3) + 
-  geom_polygon(color="black", fill="gray") + 
+  geom_polygon(color="black", fill="lightgreen") + 
   geom_polygon(data=iowa_county, fill=NA, color="white") + 
   geom_polygon(color="black", fill=NA) + 
   ggtitle('Iowa Map with Counties') + 
@@ -371,6 +371,6 @@ ca_map <- ggplot(data=iowa, mapping=aes(x=long, y=lat, group=group)) +
 ca_map
 
 ```
-This code was found on [github](https://jtr13.github.io/cc19/different-ways-of-plotting-u-s-map-in-r.html) 
+This code was found on [github](https://jtr13.github.io/cc19/different-ways-of-plotting-u-s-map-in-r.html) . I was unable to incorporate a database for weather or yield, however I believe learning to graph state maps is extremely useful. 
 
 ### Bonus #2: Challenge question - map trends in corn yields by county across Iowa. Interpret your map.
