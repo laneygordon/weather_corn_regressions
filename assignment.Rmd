@@ -227,27 +227,27 @@ maxtemp18 <- tmaxdf %>%
 maxtemp18$county_ansi <- as.numeric(as.character(maxtemp18$county_ansi))
 county_yield$county_ansi <- as.numeric(as.character(county_yield$county_ansi))
 
-#Joining the two dfs together
+#Joining the two together
 combo <- inner_join(maxtemp18, county_yield, by='county_ansi')
 
-county_summer_yield$meantsmaxsq <- county_summer_yield$meantmax^2  
+combo$meantmaxsq <- combo$meantmax^2  
 
 #linear model
-lm_Q3 <- lm(yield ~ meantmax + meantmaxsq, data = county_summer_yield) 
+lm_Q3 <- lm(yield ~ meantmax + meantmaxsq, data = combo) 
 summary(lm_Q3) 
 
 #quadratic
-county_summer_yield$fitted <- lm_Q3$fitted.values 
+combo$fitted <- lm_Q3$fitted.values 
 
 #plot
-ggplot(county_summer_yield) + 
+ggplot(combo) + 
    geom_point(mapping = aes( x = meantmax, y= yield)) + 
   geom_line(mapping = aes( x= meantmax, y = fitted)) +
   theme_bw() +
-  labs(x = "Max Temperature (C)", y = "Yield") 
+  labs(x = "Avg Max Temperature (C)", y = "Yield") 
 
 ```
-Based on the plot, there does not appear to be a relationship between the meantmax and yield. Additionally, the p-value of 0.063 is greater than alpha, which assures us that we do not have significant evidence of a relationship between the two.  
+Based on the distribution of values displayed in our plot, there is not a clear distinction of a relationship between meantmax and yield across all Iowa counties in 2018. There is enough significant evidence to make this claim because the p-value of 0.0017 is less than alpha, which reassures us that we reject the null hypothesis that there is a relationship between the two.  
 
 
 ### Question 4 -- Panel: One way to leverage multiple time series is to group all data into what is called a "panel" regression. Convert the county ID code ("countyfp" or "county_ansi") into factor using as.factor, then include this variable in a regression using all counties' yield and summer temperature data. How does the significance of your temperature coefficients (Tmax, Tmax^2) change? Make a plot comparing actual and fitted yields and interpret the results of your model.
