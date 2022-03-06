@@ -2,7 +2,7 @@
 title: "Weather and Corn Yield Regressions"
 author: "Laney Gordon"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
-output: html_document
+output: html_document 
 ---
 
 ```{r setup, include=FALSE}
@@ -116,7 +116,7 @@ ggplot(winnewinter) +
 
 ### Download NASS corn yield data
 
-```{r yield download, results='hide'}
+```{r download, results= 'hide' } 
 
 # set our API key with NASS
 nassqs_auth(key = "BC58E27D-5B67-3236-A9E4-8E1CE4BBE26F")
@@ -309,6 +309,9 @@ soybeansall$yield <- as.numeric(soybeansall$Value)
 soybeanyields <- select(soybeansall, county_ansi, county_name, yield, year) %>%
   filter(!is.na(county_ansi) & !is.na(yield))
 soybeanyields <- tibble(soybeanyields) 
+```
+
+```{r soy yield}
 
 #specific Winneshiek County
 winnesoy_yield <- soybeanyields %>%
@@ -320,6 +323,7 @@ ggplot(winnesoy_yield, mapping = aes(x= year, y= yield)) +
   geom_point() +
   theme_bw() +
   labs(x = "Year", y = "Yield") +
+  ggtitle('Soybean Yield Across Winneshiek County') + 
   geom_smooth(method = lm) 
 
 lm_winnesoy_yield <- lm(yield ~ year, winnesoy_yield)
@@ -330,7 +334,7 @@ summary(lm_winnesoy_yield)
 
 ### Bonus: Find a package to make a county map of Iowa displaying some sort of information about yields or weather. Interpret your map.
 
-```{r}
+```{r, include= FALSE}
 #download packages
 library(ggplot2)
 library(maps) 
